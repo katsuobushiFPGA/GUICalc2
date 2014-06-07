@@ -56,12 +56,12 @@ public BigDecimal prod() :
 	String tmp;
 }
 {
-    root=atai()
-  ( <MULOP> node=atai() {
+    root=sign()
+  ( <MULOP> node=sign() {
 		root = root.multiply(node);
      }
    |
-   <DIVOP> node =atai() {
+   <DIVOP> node =sign() {
   	    tmp = root.divide(node,20,BigDecimal.ROUND_HALF_UP).toString();
   	    for(int i=tmp.length()-1;i > 0;i--)
   	    {
@@ -75,10 +75,22 @@ public BigDecimal prod() :
 		root = new BigDecimal(tmp);
        }
    |
-   < EXPOP >node=atai()
+   < EXPOP >node=sign()
    {
 		root = new BigDecimal(Math.pow(root.doubleValue(),node.doubleValue()));
    } )* { return root; }
+}
+public BigDecimal sign() :
+{  BigDecimal node;
+}
+{ < MINUSOP > node = atai()
+  {
+    return node.negate();
+  }
+ | node = atai()
+  {
+    return node;
+  }
 }
 
 public BigDecimal atai() :

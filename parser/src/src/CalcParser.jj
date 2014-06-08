@@ -93,8 +93,7 @@ public BigDecimal sign() :
   }
  |
  < PLUSOP > node = atai()
- {
-   return node.plus();
+ {   return node.plus();
  }
  |
  node = atai()

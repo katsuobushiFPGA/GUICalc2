@@ -1,0 +1,122 @@
+options
+{
+  JDK_VERSION = "1.8";
+  static = false;
+}
+PARSER_BEGIN(Parser)
+import java.io.*;
+import java.math.*;
+
+class Parser {
+}
+PARSER_END(Parser)
+TOKEN : {
+    <#DIGIT   : ["0"-"9"]>
+ |  <NUM     :(< DIGIT >)+("."(< DIGIT >)+)?>
+ |  <EXPOP   : "^" >
+ |  <PLUSOP  : "+" >
+ |  <MULOP   : "*" >
+ |  <MINUSOP : "-" >
+ |  <DIVOP   : "/" >
+ |  <OPEN    : "(" >
+ |  <CLOSE   : ")" >
+ |  <EQOP    : "=" >
+}
+SKIP : {
+    " " | "\n" | "\r"
+}
+public BigDecimal start() :
+{
+    BigDecimal root;
+}
+{
+    root=sum()
+    <EQOP> { return root; }
+}
+
+public BigDecimal sum() :
+{
+    BigDecimal root, node;
+}
+{
+    root=prod()
+    ( <PLUSOP> node=prod() {
+		root= root.add(node);
+       }
+     |
+	 <MINUSOP> node=prod() {
+		root = root.subtract(node);
+		}
+	)* { return root; }
+}
+
+
+public BigDecimal prod() :
+{
+	BigDecimal node, root;
+	String tmp;
+}
+{
+    root=sign()
+  ( <MULOP> node=sign() {
+		root = root.multiply(node);
+     }
+   |
+   <DIVOP> node =sign() {
+  	    tmp = root.divide(node,20,BigDecimal.ROUND_HALF_UP).toString();
+  	    for(int i=tmp.length()-1;i > 0;i--)
+  	    {
+  	     	if(tmp.charAt(i) == '0')
+  	     	{
+				tmp=tmp.substring(0,i);
+  	     	}
+  	     	else
+  	     		break;
+  	    }
+		root = new BigDecimal(tmp);
+       }
+   |
+   < EXPOP >node=sign()
+   {
+		root = new BigDecimal(Math.pow(root.doubleValue(),node.doubleValue()));
+   } )* { return root; }
+}
+public BigDecimal sign() :
+{
+  BigDecimal node;
+}
+{
+
+   < MINUSOP > node = atai()
+  {
+    return node.negate();
+  }
+ |
+ < PLUSOP > node = atai()
+ {   return node.plus();
+ }
+ |
+ node = atai()
+  {
+    return node;
+  }
+}
+
+public BigDecimal atai() :
+{
+  BigDecimal node;
+}
+{
+	node=num() { return node; }
+	|<OPEN> node=sum() <CLOSE> {return node;}
+}
+
+public BigDecimal num() :
+{
+}
+{
+   < NUM >
+   {
+     return new BigDecimal(token.image);
+   }
+}
